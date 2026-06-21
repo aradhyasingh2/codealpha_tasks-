@@ -1,0 +1,59 @@
+import random
+
+WORDS = [
+    "python",
+    "programming",
+    "developer",
+    "computer",
+    "algorithm",
+    "database",
+    "software",
+    "network"
+]
+MAX_WRONG = 6
+
+def display(word, guessed):
+    return " ".join(letter if letter in guessed else "_" for letter in word)
+
+def hangman():
+    word = random.choice(WORDS)
+    guessed = set()
+    wrong = 0
+
+    print("\n=== HANGMAN ===")
+    print(f"Guess the word! ({len(word)} letters) | Wrong guesses allowed: {MAX_WRONG}\n")
+
+    while wrong < MAX_WRONG:
+        print(f"Word:    {display(word, guessed)}")
+        print(f"Wrong:   {wrong}/{MAX_WRONG}  |  Guessed: {', '.join(sorted(guessed)) or '-'}")
+
+        if all(letter in guessed for letter in word):
+            print(f"\nYou won! The word was '{word}'. 🎉")
+            break
+
+        guess = input("Guess a letter: ").strip().lower()
+
+        if len(guess) != 1 or not guess.isalpha():
+            print("Enter a single letter.\n")
+            continue
+
+        if guess in guessed:
+            print("Already guessed that.\n")
+            continue
+
+        guessed.add(guess)
+
+        if guess in word:
+            print("Correct!\n")
+        else:
+            wrong += 1
+            remaining = MAX_WRONG - wrong
+            print(f"Wrong! {remaining} guess{'es' if remaining != 1 else ''} left.\n")
+    else:
+        print(f"\nGame over! The word was '{word}'.")
+
+while True:
+    hangman()
+    if input("\nPlay again? (y/n): ").strip().lower() != "y":
+        print("Thanks for playing!")
+        break
