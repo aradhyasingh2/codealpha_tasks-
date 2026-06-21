@@ -1,0 +1,139 @@
+import os
+import time
+
+# Predefined dictionary for stock prices (as requested by the scope)
+STOCK_MARKET = {
+    "AAPL": 180.00,
+    "TSLA": 250.00,
+    "GOOGL": 175.50,
+    "AMZN": 185.25,
+    "MSFT": 420.00,
+    "NVDA": 900.75
+}
+
+FILENAME = "portfolio.txt"
+
+def load_portfolio():
+    """Loads the portfolio from a text file if it exists."""
+    portfolio = {}
+    if os.path.exists(FILENAME):
+        try:
+            with open(FILENAME, "r") as f:
+                for line in f:
+                    if line.strip():
+                        ticker, qty = line.strip().split(",")
+                        portfolio[ticker.upper()] = int(qty)
+        except Exception:
+            print("[System Notice: Starting with a fresh portfolio.]")
+    return portfolio
+
+def save_portfolio(portfolio):
+    """Saves the current portfolio to a text file."""
+    try:
+        with open(FILENAME, "w") as f:
+            for ticker, qty in portfolio.items():
+                f.write(f"{ticker},{qty}\n")
+    except IOError:
+        print("\n❌ Error saving portfolio changes to file.")
+
+def display_market():
+    """Displays available stocks and their current prices."""
+    print("\n--- AVAILABLE STOCKS IN MARKET ---")
+    for ticker, price in STOCK_MARKET.items():
+        print(f"📈 {ticker:<6} : ${price:,.2f}")
+    print("-" * 34)
+
+def view_portfolio(portfolio):
+    """Displays the user's current holdings and total asset value."""
+    print("\n" + "="*45)
+    print("           YOUR INVESTMENT PORTFOLIO          ")
+    print("="*45)
+    
+    if not portfolio:
+        print("Your portfolio is currently empty. Start investing!")
+        print("="*45)
+        return
+
+    print(f"{'STOCK':<10}{'QUANTITY':<12}{'UNIT PRICE':<14}{'TOTAL VALUE':<10}")
+    print("-" * 45)
+    
+    total_portfolio_value = 0.0
+    
+    for ticker, qty in portfolio.items():
+        # Fallback to $0.0 if a custom user ticker isn't in our market dict
+        unit_price = STOCK_MARKET.get(ticker, 0.0)
+        stock_value = qty * unit_price
+        total_portfolio_value += stock_value
+        print(f"{ticker:<10}{qty:<12}${unit_price:<13,.2f}${stock_value:<10,.2f}")
+        
+    print("-" * 45)
+    print(f"💰 TOTAL PORTFOLIO VALUE: ${total_portfolio_value:,.2f}")
+    print("="*45)
+
+def tracker_app():
+    portfolio = load_portfolio()
+    
+    while True:
+        print("\n📊 MAIN MENU")
+        print("1. View Available Stock Prices")
+        print("2. Add / Update Stock Holdings")
+        print("3. View My Portfolio Dashboard")
+        print("4. Reset Portfolio Data")
+        print("5. Save & Exit")
+        
+        choice = input("\nSelect an option (1-5): ").strip()
+        
+        if choice == "1":
+            display_market()
+            
+        elif choice == "2":
+            display_market()
+            ticker = input("Enter stock ticker symbol to add/update: ").strip().upper()
+            
+            if not ticker:
+                print("❌ Ticker cannot be blank.")
+                continue
+                
+            # Bonus effort: warn them if it's a completely custom stock
+            if ticker not in STOCK_MARKET:
+                print(f"⚠️ Note: '{ticker}' is not in our live market list. Price defaults to $0.00 unless tracked.")
+            
+            qty_input = input(f"Enter total number of shares held for {ticker}: ").strip()
+            if not qty_input.isdigit() or int(qty_input) < 0:
+                print("❌ Invalid quantity. Please enter a positive whole number.")
+                continue
+                
+            shares = int(qty_input)
+            if shares == 0:
+                portfolio.pop(ticker, None) # Remove if shares are set to 0
+                print(f"🗑️ Removed {ticker} from holdings.")
+            else:
+                portfolio[ticker] = shares
+                print(f"✅ Updated {ticker}: {shares} shares successfully logged.")
+            
+            save_portfolio(portfolio)
+            
+        elif choice == "3":
+            print("\nGenerating report...", end="\r")
+            time.sleep(0.5)
+            view_portfolio(portfolio)
+            
+        elif choice == "4":
+            confirm = input("⚠️ Are you sure you want to clear your portfolio data? (y/n): ").strip().lower()
+            if confirm == "y":
+                portfolio.clear()
+                save_portfolio(portfolio)
+                print("♻️ Portfolio wiped completely.")
+                
+        elif choice == "5":
+            print("\nSaving your portfolio assets securely...")
+            save_portfolio(portfolio)
+            time.sleep(0.5)
+            print("Thank you for using CodeAlpha Portfolio Tracker. Goodbye! 📈💼")
+            break
+        else:
+            print("❌ Invalid entry. Please pick an option between 1 and 5.")
+
+# Run Tracker
+if __name__ == "__main__":
+    tracker_app()
